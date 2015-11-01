@@ -40,7 +40,7 @@ sig TaxiDriver extends RegUser{
 }
 
 sig Taxi {
-  code: one Integer
+  code: one Integer,
   position: one Coordinate
 }
 
@@ -57,8 +57,8 @@ sig Map {
 }
 
 sig System {
-  map: one Map
-  users: set Users
+  map: one Map,
+  users: set User,
   taxiRide: set TaxiRide
 }
 
@@ -80,3 +80,5 @@ sig Reservation extends TaxiRide {
 }
 
 pred show {}
+
+run show
