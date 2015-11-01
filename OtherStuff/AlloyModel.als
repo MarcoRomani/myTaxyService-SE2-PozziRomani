@@ -64,9 +64,8 @@ sig System {
 
 abstract sig TaxiRide {
   origin: one Coordinate,
-  destination: one Coordinate,
+  destination: lone Coordinate,
   waitingTime: lone Integer,
-  code: lone Integer,
   taxi: lone Taxi
 }
 
