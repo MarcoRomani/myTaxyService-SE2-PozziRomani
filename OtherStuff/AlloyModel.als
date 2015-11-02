@@ -72,7 +72,8 @@ abstract sig TaxiRide {
   time: one Time,
   waitingTime: lone Integer,
   taxi: lone Taxi,
-  rideStatus: one RideStatus
+  rideStatus: one RideStatus,
+  hasCustomer: one Customer
 }
 
 sig Request extends TaxiRide {
@@ -113,7 +114,28 @@ fact taxiZoneInMap{
 
 //No more than 1 "Assigned" taxiRide for customer
 fact RideLimit{
-  no disj r1,r2:TaxiRide,  | (r1.
+  no disj r1,r2:TaxiRide | (r1.rideStatus = r2.rideStatus) and (r2.rideStatus = Assigned) and 
+																(r1.hasCustomer = r2.hasCustomer) 
+  no disj r1,r2:Request | (r1.rideStatus = r2.rideStatus) and (r2.rideStatus = NotAssigned) and 
+																(r1.hasCustomer = r2.hasCustomer)
+  no disj r1,r2:Request | (r1.rideStatus = Assigned) and (r2.rideStatus = NotAssigned) and
+																(r1.hasCustomer = r2.hasCustomer)
+  no disj r1:Request, r2:Reservation| (r1.rideStatus = NotAssigned) and (r2.rideStatus = Assigned) and
+																(r1.hasCustomer = r2.hasCustomer)
+}
+
+//taxi (or taxi driver) has no more than 1 taxiRide with assigned status
+fact driverOneRide{
+  no disj r1,r2:TaxiRide | (r1.taxi = r2.taxi) and (r1.rideStatus = Assigned) and (r2.rideStatus = r1.rideStatus)
+}
+
+//no taxi paired with a taxi ride with "not assigned" status
+fact noTaxiNotAssigned{
+  all r1:TaxiRide | (r1.rideStatus = NotAssigned) implies (r1.taxi = none)
+}
+
+fact TaxiRideStatus{
+    all r1:TaxiRide | (r1.rideStatus != NotAssigned) implies (#r1.taxi=1)
 }
 
 fact numberEq{
@@ -121,6 +143,15 @@ fact numberEq{
   #System.taxiRide = #TaxiRide
 }
 
+//busy taxi must not be in a queue
+fact taxiBusyQueue{
+  all d1:TaxiDriver | ((d1.status = Busy) implies (no q1:TaxiQueue | d1.taxi  in  q1.hasTaxi))
+}
+
+//available taxi must be in a queue
+fact taxiAvailableQueue{
+  all d1:TaxiDriver | ((d1.status = Available) implies (some q1:TaxiQueue | d1.taxi  in  q1.hasTaxi))
+}
 
 //Assertions
 
@@ -131,12 +162,22 @@ assert numbersEquivalence{
   #System.taxiRide = #TaxiRide
 }
 
+//
+
 //Origin cannot be equal to destination
 
 //check numbersEquivalence
 
 //Other commands
 
-pred show {}
+pred addAssignedRide(s1:System, r1:TaxiRide){
+  ((r1 not in s1.taxiRide) implies (s1.taxiRide = s1.taxiRide + r1)) and  r1.rideStatus = Assigned
+}
 
-run show for 3 but 3 TaxiZone
+run addAssignedRide for 10 but 10 Taxi
+
+pred show {
+
+}
+
+run show for 3 but 10 Taxi
