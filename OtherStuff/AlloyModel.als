@@ -85,7 +85,8 @@ sig Reservation extends TaxiRide {
 }
 //****Facts
 
-//No duplicate users
+//No duplicate users 
+
 fact noDuplicateUsers{
   no disj u1,u2:RegUser | (u1.email = u2.email) or (u1.telephone = u2.telephone)
   no disj a1,a2:Admin | (a1.email = a2.email)
@@ -94,10 +95,11 @@ fact noDuplicateUsers{
 
 //Every taxi has always exactly one driver
 fact taxiOneDriver{
-  //#Taxi = #TaxiDriver
-  TaxiDriver <: taxi in TaxiDriver one->Taxi
+  //no disj d1,d2:TaxiDriver | d1.taxi = d2.taxi
+  #TaxiDriver = # Taxi
+  //TaxiDriver <: taxi in TaxiDriver one->Taxi
 }
-
+/*
 //Every taxi queue has always exactly one taxi zone
 fact queueOneZone{
   TaxiZone <: hasTaxiQueue in TaxiZone one -> TaxiQueue
@@ -138,9 +140,10 @@ fact TaxiRideStatus{
     all r1:TaxiRide | (r1.rideStatus != NotAssigned) implies (#r1.taxi=1)
 }
 
-fact numberEq{
-  #System.users = # User
-  #System.taxiRide = #TaxiRide
+//systems must have the reference to all users and rides
+fact systemUserRide{
+  all u1:User | u1 in System.users
+  all r1:TaxiRide | r1 in System.taxiRide
 }
 
 //busy taxi must not be in a queue
@@ -153,31 +156,56 @@ fact taxiAvailableQueue{
   all d1:TaxiDriver | ((d1.status = Available) implies (some q1:TaxiQueue | d1.taxi  in  q1.hasTaxi))
 }
 
+//Origin cannot be equal to destination
+fact originDifferentDestination{
+  no r1:TaxiRide | (r1.origin = r1.destination)
+}
+*/
+fact shutthefuckup{
+  //#Taxi > 2
+}
+/*
 //Assertions
-
+//
 assert numbersEquivalence{
   #Taxi = #TaxiDriver
-  #TaxiZone = #hasTaxiQueue
+  #TaxiZone = #TaxiQueue
   #System.users = # User
   #System.taxiRide = #TaxiRide
 }
 
-//
-
-//Origin cannot be equal to destination
-
 //check numbersEquivalence
 
+
+//busy taxi drivers may not be assigned to a customer
+assert driversStandardCustomer{
+   some d1:TaxiDriver | (d1.status = Busy and (no r1:TaxiRide | (r1.rideStatus = Assigned and r1.taxi = d1.taxi)))
+   some s1:System, r1:TaxiDriver | addDriver[s1,r1]
+}
+
+//check driversStandardCustomer 
+
+*/
 //Other commands
 
 pred addAssignedRide(s1:System, r1:TaxiRide){
   ((r1 not in s1.taxiRide) implies (s1.taxiRide = s1.taxiRide + r1)) and  r1.rideStatus = Assigned
 }
 
-run addAssignedRide for 10 but 10 Taxi
-
-pred show {
-
+pred addCompletedRide(s1:System, r1:TaxiRide){
+  ((r1 not in s1.taxiRide) implies (s1.taxiRide = s1.taxiRide + r1)) and  r1.rideStatus = Completed
 }
 
-run show for 3 but 10 Taxi
+pred addDriver (s1:System, r1:TaxiDriver){
+  ((r1 not in s1.users) implies (s1.users = s1.users + r1)) and  r1.status = Busy
+}
+
+//run addAssignedRide
+
+pred show {
+	some s1:System, r1:TaxiRide | addAssignedRide[s1,r1]
+    some s1:System, r1:TaxiRide | addCompletedRide[s1,r1]
+    some s1:System, r1:TaxiDriver | addDriver[s1,r1]
+}
+
+run show for 10
