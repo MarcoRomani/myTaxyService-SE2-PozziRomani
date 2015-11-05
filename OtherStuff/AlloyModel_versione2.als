@@ -24,14 +24,13 @@ sig Admin extends User{
 abstract sig RegUser extends User{
   name: one Strings,
   surname: one Strings,
-  password: one Strings
-}
-
-sig Customer extends RegUser{
+  password: one Strings,
   birth: one Date,
   email: one Strings,
   telephone: one Strings
 }
+
+sig Customer extends RegUser{}
 
 sig TaxiDriver extends RegUser{
   status: one DriverStatus,
@@ -84,9 +83,8 @@ sig Reservation extends TaxiRide {
 //****Facts
 
 //No duplicate users 
-
 fact noDuplicateUsers{
-// no disj u1,u2:RegUser | (u1.email = u2.email)// or (u1.telephone = u2.telephone))    <----- INSPIEGABILE
+  no disj u1,u2: RegUser| (u1.email = u2.email) or (u1.telephone = u2.telephone)
   no disj a1,a2:Admin | (a1.email = a2.email)
   no disj a1:Admin, u1:RegUser | (a1.email = u1.email)
 }
@@ -109,6 +107,7 @@ fact taxiOneQueue{
  all t2:Taxi | lone q3:TaxiQueue | t2 in q3.hasTaxi
 }
 
+//the map has all the taxi zones
 fact taxiZoneInMap{
   TaxiZone in Map.hasZone
 }
@@ -137,6 +136,7 @@ fact noTaxiNotAssigned{
   all r1:TaxiRide | (r1.rideStatus = NotAssigned) implies (r1.taxi = none)
 }
 
+//Assigned and completed rides must be bound to a taxi
 fact TaxiRideStatus{
     all r1:TaxiRide | (r1.rideStatus != NotAssigned and r1.rideStatus!= Annulled) implies (#r1.taxi=1)
 }
@@ -205,35 +205,41 @@ assert driversStandardCustomer{
 */
 //Other commands
 
+//Add an assigned ride 
 pred addAssignedRide(s1,s2:System){
   one r1:TaxiRide | r1.rideStatus = Assigned  and s2.taxiRide=s1.taxiRide + r1
 }
 
+//Add an annulled ride
 pred addAnnulledRide(s1,s2:System){
   one r1:TaxiRide | r1.rideStatus = Annulled  and s2.taxiRide=s1.taxiRide + r1
 }
 
+//Add a completed ride
 pred addCompletedRide(s1,s2:System){
- 
    one r1:TaxiRide | r1.rideStatus = Completed  and s2.taxiRide=s1.taxiRide + r1
 }
 
+//Add 2 taxi drivers
 pred add2Driver (s1,s2:System, d1,d2:TaxiDriver){
-  
   s2.users= s1.users + d1 + d2
 }
 
+//Add 2 customers
 pred add2Customer(s1,s2:System,c1,c2:Customer){
   s2.users=s1.users + c1+c2
 }
+//Add 2 reservations
 pred add2Reservation(s1,s2:System, res1,res2:Reservation){
   s2.taxiRide=s1.taxiRide + res1 + res2 
 }
 
+//Add 2 requests
 pred add2Request(s1,s2:System, req1,req2:Request){
   s2.taxiRide=s1.taxiRide + req1 + req2 
 }
 
+//Add 1 busy and 1 available taxi driver
 pred atleast1busy1available{
     some d:TaxiDriver | d.status = Busy
     some d:TaxiDriver | d.status = Available
@@ -257,4 +263,4 @@ pred show [s1,s2:System,disj d1,d2:TaxiDriver, disj c1,c2:Customer,disj res1,res
     //some s1:System, r1:TaxiDriver | addDriver[s1,r1]
 }
 
-run show for 5
+run show for 4
