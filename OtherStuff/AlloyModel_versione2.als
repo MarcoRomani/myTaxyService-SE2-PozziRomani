@@ -1,18 +1,14 @@
-//****Signatures 
+//*****SIGNATURE*****//
 
 sig Integer {}
-
 sig Strings {}
-
 sig Date {}
+sig Time {}
+sig Coordinate{}
 
 enum DriverStatus {Busy, Available}
 
 enum RideStatus{Annulled, Assigned, Completed, NotAssigned}
-
-sig Time {}
-
-sig Coordinate{}
 
 abstract sig User {}
 
@@ -83,6 +79,8 @@ sig Request extends TaxiRide {
 sig Reservation extends TaxiRide {
 
 }
+
+
 //****Facts
 
 //No duplicate users 
@@ -140,7 +138,7 @@ fact noTaxiNotAssigned{
 }
 
 fact TaxiRideStatus{
-    all r1:TaxiRide | (r1.rideStatus != NotAssigned) implies (#r1.taxi=1)
+    all r1:TaxiRide | (r1.rideStatus != NotAssigned and r1.rideStatus!= Annulled) implies (#r1.taxi=1)
 }
 
 //systems must have the reference to all users and rides
@@ -148,10 +146,11 @@ fact systemUserRide{
   all u1:User | u1 in System.users
   all r1:TaxiRide | r1 in System.taxiRide
 }
-// annulled rides must not be linked to any taxi
 
+// annulled rides must not be linked to any taxi
 fact AnnulledNoTaxi{
-  no r:TaxiRide | r.rideStatus = Annulled and r.taxi != none
+  //no r:TaxiRide | r.rideStatus = Annulled and r.taxi != none
+  all r:TaxiRide | r.rideStatus = Annulled implies r.taxi = none
 }
 
 //busy taxi must not be in a queue
@@ -210,6 +209,10 @@ pred addAssignedRide(s1,s2:System){
   one r1:TaxiRide | r1.rideStatus = Assigned  and s2.taxiRide=s1.taxiRide + r1
 }
 
+pred addAnnulledRide(s1,s2:System){
+  one r1:TaxiRide | r1.rideStatus = Annulled  and s2.taxiRide=s1.taxiRide + r1
+}
+
 pred addCompletedRide(s1,s2:System){
  
    one r1:TaxiRide | r1.rideStatus = Completed  and s2.taxiRide=s1.taxiRide + r1
@@ -240,16 +243,18 @@ pred atleast1busy1available{
 
 pred show [s1,s2:System,disj d1,d2:TaxiDriver, disj c1,c2:Customer,disj res1,res2:Reservation,disj req1,req2:Request, r1,r2:TaxiRide]{
    
-    atleast1busy1available
-    add2Driver[s1,s2,d1,d2]
-    add2Customer[s1,s2,c1,c2]
-    add2Reservation[s1,s2,res1,res2]
-    add2Request[s1,s2,req1,req2]
-    addAssignedRide[s1,s2]
-    addCompletedRide[s1,s2]
+    //atleast1busy1available
+    //add2Driver[s1,s2,d1,d2]
+    //add2Customer[s1,s2,c1,c2]
+    //add2Reservation[s1,s2,res1,res2]
+    //add2Request[s1,s2,req1,req2]
+    //addAssignedRide[s1,s2]
+    //addCompletedRide[s1,s2]
+    addAnnulledRide[s1,s2]
+
 	//some s1:System, r1:TaxiRide | addAssignedRide[s1,r1]
     //some s1:System, r1:TaxiRide | addCompletedRide[s1,r1]
     //some s1:System, r1:TaxiDriver | addDriver[s1,r1]
 }
 
-run show for 6
+run show for 5
