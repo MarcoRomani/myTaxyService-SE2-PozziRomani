@@ -247,6 +247,10 @@ pred atleast1busy1available{
 
 //run addAssignedRide
 
+pred show1{}
+
+run show1
+
 pred show [s1,s2:System,disj d1,d2:TaxiDriver, disj c1,c2:Customer,disj res1,res2:Reservation,disj req1,req2:Request, r1,r2:TaxiRide]{
    
     //atleast1busy1available
