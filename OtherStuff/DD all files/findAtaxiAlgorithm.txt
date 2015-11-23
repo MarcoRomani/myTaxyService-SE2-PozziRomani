@@ -1,0 +1,57 @@
+/***** QUEUE MANAGER *****/
+---- searchTaxiInQueue SUBROUTINE ----
+
+// Parameters given by the caller:
+customerPosition
+
+// Initialization:
+initZone= findZone(customerPosition)
+depth = getDEPTH() //The depth of the available taxi research should not be hard-coded so that future extensions may be easier.
+		   //In our model DEPTH = 1.
+G = getZonesGraph //gets the graph of the zones
+
+//Algorithm core:
+for each node n in G:            
+        n.distance = INFINITY        
+        n.parent = NIL
+
+create empty queue Q  
+
+initZone.distance = 0
+Q.enqueue(initZone)                      
+
+while Q is not empty:        
+   
+	currentZone = Q.dequeue()
+	currentQueue = getQueue(currentZone)
+	if(NOTEMPTY(currentQueue)
+		return currentQueue.DEQUEUE
+
+        for each node n that is adjacent to u:
+             if n.distance == INFINITY:
+		   if (n.distance + 1 < depth)
+                	n.distance = currentZone.distance + 1
+                	n.parent = currentZone
+                	Q.enqueue(n)
+
+
+---- moveBottomQueue SUBROUTINE ----
+// Parameters given by the caller:
+taxiToBeMoved
+
+//Algorithm
+zone = findZone(taxiToBeMoved)
+queue = getQueue(zone)
+queue.ENQUEUE(taxiToBeMoved)
+
+
+/***** RIDES MANAGER *****/
+---- when a taxi must be assigned to a driver SUBROUTINE ----
+
+customerPosition = getCustomerPosition //extract the info from the ride
+taxi = searchTaxiInQueue(customerPosition) //call the subroutine in the QUEUE MANAGER
+driver = extractDriver(taxi)
+askConfirmation(driver) //calls the MESSAGE BROKER to send the request to the driver
+/* ... here this algorithm is over. The rides manager will be called by the MESSAGE BROKER when the driver answers
+
+
