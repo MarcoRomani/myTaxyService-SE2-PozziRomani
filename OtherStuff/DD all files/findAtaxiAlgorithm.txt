@@ -27,9 +27,9 @@ while Q is not empty:
 	if(NOTEMPTY(currentQueue)
 		return currentQueue.DEQUEUE
 
-        for each node n that is adjacent to u:
+        for each node n that is adjacent to currentZone:
              if n.distance == INFINITY:
-		   if (n.distance + 1 < depth)
+		   if (currentZone.distance + 1 < depth)
                 	n.distance = currentZone.distance + 1
                 	n.parent = currentZone
                 	Q.enqueue(n)
@@ -52,6 +52,6 @@ customerPosition = getCustomerPosition //extract the info from the ride
 taxi = searchTaxiInQueue(customerPosition) //call the subroutine in the QUEUE MANAGER
 driver = extractDriver(taxi)
 askConfirmation(driver) //calls the MESSAGE BROKER to send the request to the driver
-/* ... here this algorithm is over. The rides manager will be called by the MESSAGE BROKER when the driver answers
+/* ... here this algorithm is over. The rides manager will be called again when the driver answers
 
 
